@@ -1,0 +1,61 @@
+<?php
+/*
+Plugin Name: Bus Schedule
+Description: A simple WordPress plugin to manage a bus schedule.
+Version: 1.0
+Author: Your Name
+*/
+
+// Activation hook to create the table when the plugin is activated
+register_activation_hook(__FILE__, 'bus_schedule_activation');
+
+// Function to create the custom table
+function bus_schedule_activation() {
+    global $wpdb;
+
+    $table_name = $wpdb->prefix . 'bus_schedule';
+
+    $charset_collate = $wpdb->get_charset_collate();
+
+    $sql = "CREATE TABLE $table_name (
+        id mediumint(9) NOT NULL AUTO_INCREMENT,
+        departure_location varchar(255) NOT NULL,
+        arrival_location varchar(255) NOT NULL,
+        departure_time time NOT NULL,
+        arrival_time time NOT NULL,
+        PRIMARY KEY  (id)
+    ) $charset_collate;";
+
+    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+    dbDelta($sql);
+}
+
+// Shortcode to display the bus schedule
+function display_bus_schedule() {
+    global $wpdb;
+
+    $table_name = $wpdb->prefix . 'bus_schedule';
+
+    $bus_schedule = $wpdb->get_results("SELECT * FROM $table_name", ARRAY_A);
+
+    if ($bus_schedule) {
+        echo '<table>';
+        echo '<tr><th>ID</th><th>Departure Location</th><th>Arrival Location</th><th>Departure Time</th><th>Arrival Time</th></tr>';
+        foreach ($bus_schedule as $schedule) {
+            echo '<tr>';
+            echo '<td>' . $schedule['id'] . '</td>';
+            echo '<td>' . $schedule['departure_location'] . '</td>';
+            echo '<td>' . $schedule['arrival_location'] . '</td>';
+            echo '<td>' . $schedule['departure_time'] . '</td>';
+            echo '<td>' . $schedule['arrival_time'] . '</td>';
+            echo '</tr>';
+        }
+        echo '</table>';
+    } else {
+        echo 'No bus schedule available.';
+    }
+}
+
+// Shortcode to use in posts or pages to display the bus schedule
+add_shortcode('bus_schedule', 'display_bus_schedule');
+?>
